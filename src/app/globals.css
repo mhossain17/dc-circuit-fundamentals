@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
+/* Dark mode via .dark class (next-themes) */
+@variant dark (&:where(.dark, .dark *));
+
+/* ── Design Tokens ───────────────────────────────────────────────── */
+@theme {
+  /* Redhawks palette */
+  --color-redhawks-red: #CC0000;
+  --color-redhawks-red-dark: #990000;
+  --color-redhawks-red-light: #FF3333;
+  --color-redhawks-black: #0A0A0A;
+  --color-redhawks-white: #FFFFFF;
+  --color-redhawks-gray-50: #F8F8F8;
+  --color-redhawks-gray-100: #F0F0F0;
+  --color-redhawks-gray-200: #E0E0E0;
+  --color-redhawks-gray-300: #CCCCCC;
+  --color-redhawks-gray-400: #999999;
+  --color-redhawks-gray-500: #666666;
+  --color-redhawks-gray-600: #444444;
+  --color-redhawks-gray-700: #333333;
+  --color-redhawks-gray-800: #1A1A1A;
+  --color-redhawks-gray-900: #111111;
+
+  /* Circuit / neon lime accent */
+  --color-circuit-lime: #39FF14;
+  --color-circuit-lime-dim: #22CC0A;
+  --color-circuit-lime-muted: #1a9908;
+
+  /* PCB decorative colors */
+  --color-pcb-green: #1A472A;
+  --color-pcb-copper: #B87333;
+  --color-pcb-mask: #0D3B1E;
+  --color-pcb-tin: #C0C0C0;
+
+  /* Fonts */
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ── CSS Variables for dark/light switching ──────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #F8F8F8;
+  --fg: #0A0A0A;
+  --card-bg: #FFFFFF;
+  --card-border: #E0E0E0;
+  --muted: #666666;
+  --accent: #CC0000;
+  --trace-opacity: 0.15;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --bg: #0A0A0A;
+  --fg: #F8F8F8;
+  --card-bg: #1A1A1A;
+  --card-border: #333333;
+  --muted: #999999;
+  --accent: #FF3333;
+  --trace-opacity: 0.28;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ── Base Styles ─────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: Inter, system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--card-bg); }
+::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ── Keyframe Animations ─────────────────────────────────────────── */
+@keyframes pulse-lime {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px #39FF14, 0 0 16px rgba(57,255,20,0.4); }
+  50%       { opacity: 0.7; box-shadow: 0 0 4px #39FF14, 0 0 8px rgba(57,255,20,0.2); }
+}
+
+@keyframes trace-flow {
+  0%   { stroke-dashoffset: 300; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(57,255,20,0.8)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(57,255,20,1)); }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes circuit-particle {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Utility Classes ─────────────────────────────────────────────── */
+.animate-slide-in-up { animation: slide-in-up 0.4s ease forwards; }
+.animate-fade-in     { animation: fade-in 0.3s ease forwards; }
+.animate-glow        { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-pulse-lime  { animation: pulse-lime 2s ease-in-out infinite; }
+
+.circuit-glow {
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.4), 0 0 20px rgba(57, 255, 20, 0.15);
+}
+
+.font-eng { font-family: "JetBrains Mono", "Fira Code", monospace; }
+
+.locked {
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+  filter: blur(1.5px);
+}
+
+/* Card surface using CSS variables */
+.card-surface {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
 }
