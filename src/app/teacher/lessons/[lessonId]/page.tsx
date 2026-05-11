@@ -1,22 +1,27 @@
-"use client";
-
 import Link from "next/link";
 import { ALL_UNITS } from "@/lib/curriculum/units";
-import { ChevronLeft, Printer, FlaskConical } from "lucide-react";
+import { ChevronLeft, FlaskConical } from "lucide-react";
 import { notFound } from "next/navigation";
+import { PrintButton } from "./PrintButton";
 import type { Question } from "@/types/questions";
 
+export async function generateStaticParams() {
+  return ALL_UNITS.flatMap((unit) =>
+    unit.lessons.map((lesson) => ({ lessonId: lesson.id }))
+  );
+}
+
 const SIM_NAMES: Record<string, string> = {
-  "breadboard":          "Breadboard Builder",
-  "safety-gallery":      "Safety Hazard Gallery",
-  "notation-converter":  "Notation Converter",
-  "component-identifier":"Component Identifier",
-  "multimeter":          "Multimeter Simulator",
-  "resistor-color-code": "Resistor Color Code Reader",
-  "ohms-law":            "Ohm's Law Explorer",
-  "series-circuit":      "Series Circuit Builder",
-  "parallel-circuit":    "Parallel Circuit Builder",
-  "soldering":           "Soldering Simulator",
+  "breadboard":           "Breadboard Builder",
+  "safety-gallery":       "Safety Hazard Gallery",
+  "notation-converter":   "Notation Converter",
+  "component-identifier": "Component Identifier",
+  "multimeter":           "Multimeter Simulator",
+  "resistor-color-code":  "Resistor Color Code Reader",
+  "ohms-law":             "Ohm's Law Explorer",
+  "series-circuit":       "Series Circuit Builder",
+  "parallel-circuit":     "Parallel Circuit Builder",
+  "soldering":            "Soldering Simulator",
 };
 
 const MP_LABELS: Record<number, string> = { 1: "MP1", 2: "MP2", 3: "MP3" };
@@ -81,13 +86,14 @@ function renderAnswer(q: Question): React.ReactNode {
   }
 }
 
-interface Props {
-  params: { lessonId: string };
-}
-
-export default function LessonPlanPage({ params }: Props) {
-  const unit = ALL_UNITS.find((u) => u.lessons.some((l) => l.id === params.lessonId));
-  const lesson = unit?.lessons.find((l) => l.id === params.lessonId);
+export default async function LessonPlanPage({
+  params,
+}: {
+  params: Promise<{ lessonId: string }>;
+}) {
+  const { lessonId } = await params;
+  const unit = ALL_UNITS.find((u) => u.lessons.some((l) => l.id === lessonId));
+  const lesson = unit?.lessons.find((l) => l.id === lessonId);
   if (!unit || !lesson) notFound();
 
   const autoTypes = ["mcq", "numeric", "matching", "drag_drop"];
@@ -107,18 +113,14 @@ export default function LessonPlanPage({ params }: Props) {
           <ChevronLeft className="w-3.5 h-3.5" />
           All Lesson Plans
         </Link>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-eng rounded-lg border border-redhawks-gray-300 dark:border-redhawks-gray-700 hover:border-redhawks-red hover:text-redhawks-red transition-colors"
-        >
-          <Printer className="w-3.5 h-3.5" />
-          Print Lesson Plan
-        </button>
+        <PrintButton />
       </div>
 
       {/* Print-only header */}
       <div className="hidden print-only">
-        <p className="text-xs text-redhawks-gray-400">High School for Construction Trades, Engineering &amp; Architecture · DC Circuit Fundamentals · Fall 2026 · Mr. Hossain</p>
+        <p className="text-xs text-redhawks-gray-400">
+          High School for Construction Trades, Engineering &amp; Architecture · DC Circuit Fundamentals · Fall 2026 · Mr. Hossain
+        </p>
       </div>
 
       {/* Lesson title block */}
@@ -266,7 +268,7 @@ export default function LessonPlanPage({ params }: Props) {
           </div>
           <div className="divide-y divide-redhawks-gray-100 dark:divide-redhawks-gray-800">
             {lesson.questions.map((q, i) => (
-              <div key={q.id} className="px-5 py-3 grid grid-cols-[2rem_1fr_auto] gap-3 items-start">
+              <div key={q.id} className="px-5 py-3 grid grid-cols-[2rem_1fr] gap-3 items-start">
                 <span className="text-xs font-eng font-bold text-redhawks-red pt-0.5">Q{i + 1}</span>
                 <div>
                   <p className="text-xs text-redhawks-gray-500 dark:text-redhawks-gray-400 font-eng mb-0.5">
@@ -313,7 +315,7 @@ export default function LessonPlanPage({ params }: Props) {
         </section>
       )}
 
-      {/* Footer spacer for print */}
+      {/* Print footer */}
       <div className="hidden print-only text-xs text-redhawks-gray-400 pt-4 border-t border-redhawks-gray-200">
         Mr. Hossain · DC Circuit Fundamentals · Fall 2026 · Keep Moving Forward
       </div>
