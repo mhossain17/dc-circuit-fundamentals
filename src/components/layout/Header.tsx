@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Zap, GraduationCap, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const pathname = usePathname();
@@ -31,19 +32,22 @@ export function Header() {
         {/* Center breadcrumb area (populated by page) */}
         <div id="header-breadcrumb" className="flex-1 flex justify-center" />
 
-        {/* Teacher toggle */}
-        <Link
-          href={isTeacher ? "/dashboard" : "/teacher"}
-          className={cn(
-            "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all",
-            isTeacher
-              ? "bg-redhawks-red text-white"
-              : "text-redhawks-gray-500 dark:text-redhawks-gray-400 hover:text-redhawks-black dark:hover:text-white hover:bg-redhawks-gray-100 dark:hover:bg-redhawks-gray-800"
-          )}
-        >
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">{isTeacher ? "Student View" : "Teacher"}</span>
-        </Link>
+        {/* Right side: teacher toggle + theme */}
+        <div className="flex items-center gap-1">
+          <Link
+            href={isTeacher ? "/dashboard" : "/teacher"}
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all",
+              isTeacher
+                ? "bg-redhawks-red text-white"
+                : "text-redhawks-gray-500 dark:text-redhawks-gray-400 hover:text-redhawks-black dark:hover:text-white hover:bg-redhawks-gray-100 dark:hover:bg-redhawks-gray-800"
+            )}
+          >
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{isTeacher ? "Student View" : "Teacher"}</span>
+          </Link>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

@@ -18,14 +18,14 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-redhawks-gray-800 dark:bg-redhawks-gray-200 text-redhawks-gray-100 dark:text-redhawks-gray-900 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-circuit-lime focus-visible:ring-offset-2"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-redhawks-gray-500 dark:text-redhawks-gray-400 hover:text-redhawks-black dark:hover:text-white hover:bg-redhawks-gray-100 dark:hover:bg-redhawks-gray-800 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-circuit-lime focus-visible:ring-offset-1"
     >
       {isDark ? (
-        <Sun className="w-4 h-4" />
+        <Sun className="w-3.5 h-3.5" />
       ) : (
-        <Moon className="w-4 h-4" />
+        <Moon className="w-3.5 h-3.5" />
       )}
-      <span className="text-xs font-semibold">{isDark ? "Light" : "Dark"}</span>
+      <span className="text-xs font-eng hidden sm:inline">{isDark ? "Light" : "Dark"}</span>
     </button>
   );
 }

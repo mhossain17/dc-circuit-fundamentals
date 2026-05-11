@@ -4,7 +4,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import type { PdfPayload } from "@/types/pdf";
 import type { Question, StudentAnswer, MCQAnswer, NumericAnswer, MatchingAnswer, DragDropAnswer, ShortAnswer, PredictionAnswer } from "@/types/questions";
@@ -14,12 +13,14 @@ const styles = StyleSheet.create({
   page: { fontFamily: "Helvetica", fontSize: 10, padding: 40, backgroundColor: "#FFFFFF" },
   header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#E0E0E0" },
   headerLeft: { flex: 1 },
-  headerRight: { alignItems: "flex-end" },
+  headerRight: { alignItems: "flex-end", minWidth: 90 },
   schoolName: { fontSize: 8, color: "#666", marginBottom: 2 },
   courseName: { fontSize: 9, color: "#CC0000", fontFamily: "Helvetica-Bold", marginBottom: 2 },
   lessonTitle: { fontSize: 12, fontFamily: "Helvetica-Bold", color: "#0A0A0A", marginBottom: 2 },
   studentName: { fontSize: 10, color: "#333" },
   scoreBadge: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#CC0000" },
+  scoreSubLine: { fontSize: 8, color: "#B45309", marginTop: 1 },
+  scoreTotalLine: { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#0A0A0A", marginTop: 2 },
   scoreSubtitle: { fontSize: 8, color: "#666" },
   section: { marginBottom: 14 },
   sectionHeader: { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#CC0000", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, borderBottomWidth: 0.5, borderBottomColor: "#E0E0E0", paddingBottom: 3 },
@@ -36,13 +37,25 @@ const styles = StyleSheet.create({
   pointsText: { fontSize: 8, color: "#999" },
   reflectionBox: { borderWidth: 1, borderColor: "#E0E0E0", borderRadius: 4, padding: 10, marginTop: 6 },
   reflectionText: { fontSize: 9, color: "#333", lineHeight: 1.6 },
-  teacherBox: { borderWidth: 1, borderColor: "#E0E0E0", borderRadius: 4, padding: 10, marginTop: 4, minHeight: 60 },
-  teacherLabel: { fontSize: 8, color: "#999", marginBottom: 4 },
-  lineRows: { marginTop: 8 },
-  lineDash: { borderBottomWidth: 0.5, borderBottomColor: "#DEDEDE", marginBottom: 10 },
   footer: { position: "absolute", bottom: 24, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 0.5, borderTopColor: "#E0E0E0", paddingTop: 6 },
   footerText: { fontSize: 7, color: "#999" },
   footerBold: { fontSize: 7, color: "#CC0000", fontFamily: "Helvetica-Bold" },
+  // Teacher review highlight styles
+  reviewBlock: { backgroundColor: "#FFFDE7", borderLeftWidth: 2, borderLeftColor: "#F59E0B", padding: 8, marginTop: 4, borderRadius: 2 },
+  reviewLabel: { fontSize: 7, color: "#B45309", fontFamily: "Helvetica-Bold", marginBottom: 4, textTransform: "uppercase" },
+  reviewText: { fontSize: 9, color: "#333", fontStyle: "italic", lineHeight: 1.5 },
+  scoreLine: { flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginTop: 6 },
+  scoreBlankRow: { fontSize: 8, color: "#555" },
+  // Score summary table
+  scoreTable: { borderWidth: 1, borderColor: "#E0E0E0", borderRadius: 4, padding: 10, marginTop: 4 },
+  scoreRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, borderBottomWidth: 0.5, borderBottomColor: "#F0F0F0" },
+  scoreRowLast: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 5, marginTop: 4, borderTopWidth: 1, borderTopColor: "#333" },
+  scoreLabel: { fontSize: 9, color: "#555" },
+  scoreLabelBold: { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#0A0A0A" },
+  scoreValue: { fontSize: 9, color: "#228B22", fontFamily: "Helvetica-Bold" },
+  scoreBlank: { fontSize: 9, color: "#888" },
+  scoreFinalLabel: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#0A0A0A" },
+  scoreFinalBlank: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#888" },
 });
 
 function renderAnswer(question: Question, answer: StudentAnswer | undefined, grade: QuestionGrade | undefined) {
@@ -114,24 +127,29 @@ function renderAnswer(question: Question, answer: StudentAnswer | undefined, gra
     case "short_response": {
       const a = answer as ShortAnswer;
       return (
-        <View>
-          <View style={styles.answerRow}>
-            <Text style={[styles.answerMark, styles.neutral]}>◎</Text>
-            <Text style={[styles.answerText, styles.neutral]}>Teacher review required (+{question.pointsValue} pts possible)</Text>
+        <View style={styles.reviewBlock}>
+          <Text style={styles.reviewLabel}>⚑ Teacher Review Required</Text>
+          <Text style={styles.reviewText}>{a.text || "(No response provided)"}</Text>
+          <View style={styles.scoreLine}>
+            <Text style={styles.scoreBlankRow}>Score: ___ / {question.pointsValue} pts</Text>
           </View>
-          <Text style={[styles.answerText, { marginLeft: 20, fontStyle: "italic" }]}>{a.text}</Text>
         </View>
       );
     }
     case "prediction": {
       const a = answer as PredictionAnswer;
       return (
-        <View>
-          <View style={styles.answerRow}>
-            <Text style={[styles.answerMark, styles.neutral]}>◎</Text>
-            <Text style={[styles.answerText, styles.neutral]}>Prediction (full credit for attempt)</Text>
+        <View style={styles.reviewBlock}>
+          <Text style={styles.reviewLabel}>⚑ Teacher Review Required — Prediction</Text>
+          <Text style={styles.reviewText}>{a.text || "(No prediction provided)"}</Text>
+          {a.revisedAfter && (
+            <Text style={[styles.reviewText, { marginTop: 4, color: "#555" }]}>
+              Revised after sim: {a.revisedAfter}
+            </Text>
+          )}
+          <View style={styles.scoreLine}>
+            <Text style={styles.scoreBlankRow}>Score: ___ / {question.pointsValue} pts</Text>
           </View>
-          <Text style={[styles.answerText, { marginLeft: 20, fontStyle: "italic" }]}>{a.text}</Text>
         </View>
       );
     }
@@ -145,9 +163,15 @@ interface Props {
 }
 
 export function LessonPdfDocument({ payload }: Props) {
-  const { studentInfo: student, lesson, answers, gradeResult, generatedAt } = payload;
+  const { studentInfo: student, lesson, answers, gradeResult, reflectionText, generatedAt } = payload;
   const dateStr = new Date(generatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  const pct = gradeResult.maxScore > 0 ? Math.round((gradeResult.score / gradeResult.maxScore) * 100) : 0;
+
+  // Separate auto-graded vs teacher-review questions
+  const autoQuestions = lesson.questions.filter(q => q.type !== "short_response" && q.type !== "prediction");
+  const reviewQuestions = lesson.questions.filter(q => q.type === "short_response" || q.type === "prediction");
+  const autoMax = autoQuestions.reduce((s, q) => s + q.pointsValue, 0);
+  const reviewMax = reviewQuestions.reduce((s, q) => s + q.pointsValue, 0);
+  const reflectionMax = lesson.reflection.prompts.length > 0 ? 10 : 0;
 
   return (
     <Document title={`${student.lastName}_${student.firstName}_${lesson.number}`}>
@@ -161,8 +185,12 @@ export function LessonPdfDocument({ payload }: Props) {
             <Text style={styles.studentName}>{student.firstName} {student.lastName} · {dateStr}</Text>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.scoreBadge}>{gradeResult.score}/{gradeResult.maxScore}</Text>
-            <Text style={styles.scoreSubtitle}>{pct}%</Text>
+            <Text style={styles.scoreBadge}>{gradeResult.score}/{autoMax}</Text>
+            <Text style={styles.scoreSubtitle}>auto-graded pts</Text>
+            {reviewMax + reflectionMax > 0 && (
+              <Text style={styles.scoreSubLine}>+ ___ / {reviewMax + reflectionMax} teacher pts</Text>
+            )}
+            <Text style={styles.scoreTotalLine}>= ___ / {gradeResult.maxScore + reflectionMax} total</Text>
           </View>
         </View>
 
@@ -177,11 +205,11 @@ export function LessonPdfDocument({ payload }: Props) {
                 <Text style={styles.questionNum}>Q{i + 1}. ({q.pointsValue} pts)</Text>
                 <Text style={styles.questionPrompt}>{q.prompt}</Text>
                 {renderAnswer(q, ans, grade)}
-                <View style={styles.pointsRow}>
-                  <Text style={styles.pointsText}>
-                    {grade ? `${grade.earned}/${q.pointsValue} pts` : ""}
-                  </Text>
-                </View>
+                {grade && grade.correct !== null && (
+                  <View style={styles.pointsRow}>
+                    <Text style={styles.pointsText}>{grade.earned}/{q.pointsValue} pts</Text>
+                  </View>
+                )}
               </View>
             );
           })}
@@ -193,19 +221,39 @@ export function LessonPdfDocument({ payload }: Props) {
           {lesson.reflection.prompts.map((p, i) => (
             <Text key={i} style={{ fontSize: 9, color: "#555", marginBottom: 3 }}>{i + 1}. {p}</Text>
           ))}
-          <View style={styles.reflectionBox}>
-            <Text style={styles.reflectionText}>{payload.reflectionText || "(No response provided)"}</Text>
+          <View style={styles.reviewBlock}>
+            <Text style={styles.reviewLabel}>⚑ Teacher Review Required</Text>
+            <Text style={styles.reviewText}>{reflectionText || "(No response provided)"}</Text>
+            <View style={styles.scoreLine}>
+              <Text style={styles.scoreBlankRow}>Score: ___ / {reflectionMax} pts</Text>
+            </View>
           </View>
         </View>
 
-        {/* Teacher Feedback */}
+        {/* Score Summary */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Teacher Feedback</Text>
-          <View style={styles.teacherBox}>
-            <Text style={styles.teacherLabel}>Comments:</Text>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <View key={i} style={styles.lineDash} />
-            ))}
+          <Text style={styles.sectionHeader}>Score Summary</Text>
+          <View style={styles.scoreTable}>
+            <View style={styles.scoreRow}>
+              <Text style={styles.scoreLabel}>Auto-graded (MCQ / Numeric / Matching / Drag-Drop)</Text>
+              <Text style={styles.scoreValue}>{gradeResult.score} / {autoMax} pts</Text>
+            </View>
+            {reviewMax > 0 && (
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreLabel}>Short Response / Prediction (teacher grades)</Text>
+                <Text style={styles.scoreBlank}>___ / {reviewMax} pts</Text>
+              </View>
+            )}
+            {reflectionMax > 0 && (
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreLabel}>Reflection (teacher grades)</Text>
+                <Text style={styles.scoreBlank}>___ / {reflectionMax} pts</Text>
+              </View>
+            )}
+            <View style={styles.scoreRowLast}>
+              <Text style={styles.scoreFinalLabel}>FINAL TOTAL</Text>
+              <Text style={styles.scoreFinalBlank}>___ / {gradeResult.maxScore + reflectionMax} pts    Grade: ____%</Text>
+            </View>
           </View>
         </View>
 

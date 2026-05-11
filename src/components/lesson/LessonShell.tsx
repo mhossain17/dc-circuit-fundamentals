@@ -14,7 +14,8 @@ import { ConceptReveal } from "./ConceptReveal";
 import { PracticeQuestions } from "./PracticeQuestions";
 import { ReflectionSection } from "./ReflectionSection";
 import { PdfExportButton } from "./PdfExportButton";
-import { SIMULATION_REGISTRY } from "@/lib/curriculum";
+import { SIMULATION_REGISTRY, ALL_UNITS } from "@/lib/curriculum";
+import { CalculatorModal } from "@/components/tools/CalculatorModal";
 import type { Unit, Lesson } from "@/types/curriculum";
 import type { StudentAnswer } from "@/types/questions";
 
@@ -66,6 +67,14 @@ function saveProgress(lessonId: string, state: LessonState) {
 export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const stages = getStagesForLesson(lesson);
   const threshold = lesson.simInteractionThreshold ?? 3;
+
+  // Compute next lesson / next unit for post-lesson navigation
+  const lessonIdx = unit.lessons.findIndex((l) => l.id === lesson.id);
+  const nextLesson = unit.lessons[lessonIdx + 1] ?? null;
+  const unitIdx = ALL_UNITS.findIndex((u) => u.id === unit.id);
+  const nextUnit = ALL_UNITS[unitIdx + 1] ?? null;
+
+  const [showCalculator, setShowCalculator] = useState(false);
 
   const [state, setState] = useState<LessonState>(() => ({
     currentStage: stages[0],
@@ -187,35 +196,49 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         {stage === "why"        && <WhyItMattersSection lesson={lesson} />}
 
         {stage === "explore" && (
-          <div className={`grid gap-6 ${SimComponent ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
-            {/* Left column: simulation */}
-            {SimComponent && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h2 className="text-base font-bold text-redhawks-black dark:text-redhawks-white">Investigation</h2>
-                  <div className="flex items-center gap-2">
-                    <ProgressBar
-                      value={state.simInteractionCount}
-                      max={threshold}
-                      variant="lime"
-                      size="sm"
-                      className="max-w-24"
-                    />
-                    <span className="text-xs font-eng text-circuit-lime whitespace-nowrap">
-                      {Math.min(state.simInteractionCount, threshold)}/{threshold}
-                    </span>
+          <div className="space-y-4">
+            <div className={`grid gap-6 ${SimComponent ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+              {/* Left column: simulation */}
+              {SimComponent && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h2 className="text-base font-bold text-redhawks-black dark:text-redhawks-white">Investigation</h2>
+                    <div className="flex items-center gap-2">
+                      <ProgressBar
+                        value={state.simInteractionCount}
+                        max={threshold}
+                        variant="lime"
+                        size="sm"
+                        className="max-w-24"
+                      />
+                      <span className="text-xs font-eng text-circuit-lime whitespace-nowrap">
+                        {Math.min(state.simInteractionCount, threshold)}/{threshold}
+                      </span>
+                    </div>
                   </div>
+                  <Suspense fallback={<div className="h-64 card-surface flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-circuit-lime" /></div>}>
+                    <SimComponent onInteraction={handleSimInteraction} />
+                  </Suspense>
                 </div>
-                <Suspense fallback={<div className="h-64 card-surface flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-circuit-lime" /></div>}>
-                  <SimComponent onInteraction={handleSimInteraction} />
-                </Suspense>
+              )}
+              {/* Right column (or full-width when no sim): discussion + guided discovery */}
+              <div className="space-y-4 lg:max-h-[75vh] lg:overflow-y-auto lg:pr-1">
+                <SocraticPrompts lesson={lesson} />
+                <GuidedDiscovery lesson={lesson} />
               </div>
-            )}
-            {/* Right column (or full-width when no sim): discussion + guided discovery */}
-            <div className="space-y-4 lg:max-h-[75vh] lg:overflow-y-auto lg:pr-1">
-              <SocraticPrompts lesson={lesson} />
-              <GuidedDiscovery lesson={lesson} />
             </div>
+
+            {/* Toolkit bar */}
+            <div className="flex items-center gap-2 pt-3 border-t border-redhawks-gray-200 dark:border-redhawks-gray-800">
+              <span className="text-xs font-eng text-redhawks-gray-400 mr-1">Tools:</span>
+              <button
+                onClick={() => setShowCalculator(true)}
+                className="px-3 py-1.5 text-xs font-eng rounded-lg border border-redhawks-gray-300 dark:border-redhawks-gray-700 hover:border-circuit-lime hover:text-circuit-lime text-redhawks-gray-500 dark:text-redhawks-gray-400 transition-colors flex items-center gap-1.5"
+              >
+                📐 TI-30XS Calculator
+              </button>
+            </div>
+            <CalculatorModal isOpen={showCalculator} onClose={() => setShowCalculator(false)} />
           </div>
         )}
 
@@ -264,6 +287,28 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
               </p>
             </div>
             <PdfExportButton lesson={lesson} answers={state.answers} reflectionText={state.reflectionText} />
+            {/* Post-lesson navigation */}
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <ChevronLeft className="w-4 h-4" />
+                  Dashboard
+                </Button>
+              </Link>
+              {(nextLesson || nextUnit) && (
+                <Link href={nextLesson
+                  ? `/units/${unit.id}/lessons/${nextLesson.id}`
+                  : `/units/${nextUnit!.id}/lessons/${nextUnit!.lessons[0].id}`
+                }>
+                  <Button variant="primary" size="sm" className="flex items-center gap-1">
+                    {nextLesson
+                      ? `${nextLesson.number}: ${nextLesson.title}`
+                      : `Unit ${nextUnit!.number}: ${nextUnit!.title}`}
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>
