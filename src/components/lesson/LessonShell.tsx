@@ -19,8 +19,8 @@ import type { Unit, Lesson } from "@/types/curriculum";
 import type { StudentAnswer } from "@/types/questions";
 
 const STAGES = [
-  "aim", "swbat", "why", "sim", "socratic",
-  "guided", "reveal", "practice", "reflection", "export",
+  "aim", "swbat", "why", "explore",
+  "reveal", "practice", "reflection", "export",
 ] as const;
 
 type LessonStage = typeof STAGES[number];
@@ -29,9 +29,7 @@ const STAGE_LABELS: Record<LessonStage, string> = {
   aim:        "Lesson Aim",
   swbat:      "Objectives",
   why:        "Why It Matters",
-  sim:        "Investigation",
-  socratic:   "Discussion",
-  guided:     "Guided Discovery",
+  explore:    "Investigation & Discovery",
   reveal:     "Concept Reveal",
   practice:   "Practice",
   reflection: "Reflection",
@@ -48,11 +46,7 @@ interface LessonState {
 }
 
 function getStagesForLesson(lesson: Lesson): LessonStage[] {
-  const stages = [...STAGES];
-  if (!lesson.simulationKey) {
-    return stages.filter((s) => s !== "sim");
-  }
-  return stages;
+  return [...STAGES];
 }
 
 function loadProgress(lessonId: string): LessonState | null {
@@ -105,9 +99,9 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
     state.currentStage === "reveal" && state.simInteractionCount < threshold && lesson.simulationKey !== null;
 
   const canAdvance = useCallback(() => {
-    if (state.currentStage === "sim" && state.simInteractionCount < threshold) return false;
+    if (state.currentStage === "explore" && lesson.simulationKey && state.simInteractionCount < threshold) return false;
     return true;
-  }, [state.currentStage, state.simInteractionCount, threshold]);
+  }, [state.currentStage, state.simInteractionCount, threshold, lesson.simulationKey]);
 
   const advance = () => {
     if (!canAdvance()) return;
@@ -153,7 +147,7 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const stage = state.currentStage;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className={`${stage === "explore" ? "max-w-6xl" : "max-w-3xl"} mx-auto px-4 py-8`}>
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-xs text-redhawks-gray-400 mb-6">
         <Link href="/dashboard" className="hover:text-redhawks-red transition-colors">Dashboard</Link>
@@ -192,35 +186,38 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         {stage === "swbat"      && <SwbatSection lesson={lesson} />}
         {stage === "why"        && <WhyItMattersSection lesson={lesson} />}
 
-        {stage === "sim" && SimComponent && (
-          <div className="mb-6">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-redhawks-black dark:text-redhawks-white mb-1">Investigation</h2>
-              <p className="text-sm text-redhawks-gray-500 dark:text-redhawks-gray-400">
-                Explore the simulation below. You must interact at least {threshold} times before advancing.
-              </p>
-              {/* Interaction counter */}
-              <div className="mt-2 flex items-center gap-2">
-                <ProgressBar
-                  value={state.simInteractionCount}
-                  max={threshold}
-                  variant="lime"
-                  size="sm"
-                  className="max-w-32"
-                />
-                <span className="text-xs font-eng text-circuit-lime">
-                  {Math.min(state.simInteractionCount, threshold)}/{threshold} interactions
-                </span>
+        {stage === "explore" && (
+          <div className={`grid gap-6 ${SimComponent ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+            {/* Left column: simulation */}
+            {SimComponent && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h2 className="text-base font-bold text-redhawks-black dark:text-redhawks-white">Investigation</h2>
+                  <div className="flex items-center gap-2">
+                    <ProgressBar
+                      value={state.simInteractionCount}
+                      max={threshold}
+                      variant="lime"
+                      size="sm"
+                      className="max-w-24"
+                    />
+                    <span className="text-xs font-eng text-circuit-lime whitespace-nowrap">
+                      {Math.min(state.simInteractionCount, threshold)}/{threshold}
+                    </span>
+                  </div>
+                </div>
+                <Suspense fallback={<div className="h-64 card-surface flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-circuit-lime" /></div>}>
+                  <SimComponent onInteraction={handleSimInteraction} />
+                </Suspense>
               </div>
+            )}
+            {/* Right column (or full-width when no sim): discussion + guided discovery */}
+            <div className="space-y-4 lg:max-h-[75vh] lg:overflow-y-auto lg:pr-1">
+              <SocraticPrompts lesson={lesson} />
+              <GuidedDiscovery lesson={lesson} />
             </div>
-            <Suspense fallback={<div className="h-64 card-surface flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-circuit-lime" /></div>}>
-              <SimComponent onInteraction={handleSimInteraction} />
-            </Suspense>
           </div>
         )}
-
-        {stage === "socratic"   && <SocraticPrompts lesson={lesson} />}
-        {stage === "guided"     && <GuidedDiscovery lesson={lesson} />}
 
         {stage === "reveal" && (
           isRevealLocked ? (
