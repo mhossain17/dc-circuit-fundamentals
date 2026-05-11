@@ -50,17 +50,6 @@ export default function DashboardPage() {
           Mr. Hossain · High School for Construction Trades, Engineering & Architecture
         </p>
 
-        {/* Stats row */}
-        <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">
-          <div className="text-center">
-            <p className="text-2xl font-bold font-eng text-circuit-lime">{ALL_UNITS.length}</p>
-            <p className="text-xs text-redhawks-gray-500 dark:text-redhawks-gray-400">Units</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold font-eng text-redhawks-red">{ALL_UNITS.flatMap((u) => u.lessons).length}</p>
-            <p className="text-xs text-redhawks-gray-500 dark:text-redhawks-gray-400">Lessons</p>
-          </div>
-        </div>
       </div>
 
       {/* All Units Grid */}
