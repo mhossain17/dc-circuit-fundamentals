@@ -341,12 +341,17 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
             />
             {/* Post-lesson navigation */}
             <div className="flex items-center justify-between gap-4 pt-1">
-              <Link href="/dashboard">
-                <Button variant="secondary" size="md" className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="md" onClick={goBack} className="flex items-center gap-1.5">
                   <ChevronLeft className="w-4 h-4" />
-                  Dashboard
+                  Reflection
                 </Button>
-              </Link>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="md" className="flex items-center gap-1.5">
+                    Dashboard
+                  </Button>
+                </Link>
+              </div>
               {(nextLesson || nextUnit) ? (
                 <Link href={nextLesson
                   ? `/units/${unit.id}/lessons/${nextLesson.id}`
@@ -374,16 +379,19 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
       {/* Navigation buttons — hidden on export stage (uses its own inline nav) */}
       {stage !== "export" && (
         <div className="mt-8 flex items-center justify-between gap-4">
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={goBack}
-            disabled={currentIdx === 0}
-            className="flex items-center gap-1.5"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            {currentIdx > 0 ? STAGE_SHORT[STAGES[currentIdx - 1]] : "Start"}
-          </Button>
+          {currentIdx > 0 ? (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={goBack}
+              className="flex items-center gap-1.5"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {STAGE_SHORT[STAGES[currentIdx - 1]]}
+            </Button>
+          ) : (
+            <div />
+          )}
 
           <Button
             variant="primary"

@@ -98,7 +98,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       {/* Teacher nav strip */}
-      <div className="bg-redhawks-gray-900 border-b border-redhawks-gray-700">
+      <div className="no-print bg-redhawks-gray-900 border-b border-redhawks-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto">
             <span className="text-xs font-eng text-redhawks-gray-500 mr-3 flex-shrink-0 py-3">Teacher View</span>
