@@ -212,7 +212,7 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
         <ChevronRight className="w-3 h-3" />
         <Link href={`/units/${unit.id}`} className="hover:text-redhawks-red transition-colors">{unit.title}</Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-redhawks-black dark:text-redhawks-white font-semibold">{lesson.number}</span>
+        <span className="text-redhawks-black dark:text-redhawks-white font-semibold">{lesson.number}: {lesson.title}</span>
       </nav>
 
       {/* Stage progress bar */}

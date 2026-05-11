@@ -39,7 +39,7 @@ export default async function UnitPage({ params }: { params: Promise<{ unitId: s
       </div>
 
       {/* Lessons List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <h2 className="text-sm font-semibold text-redhawks-gray-500 dark:text-redhawks-gray-400 uppercase tracking-wider mb-4">
           Lessons
         </h2>
