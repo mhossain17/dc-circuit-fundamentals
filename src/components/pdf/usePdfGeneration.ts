@@ -7,7 +7,13 @@ import { autoGrade } from "@/lib/grading/autoGrade";
 interface UsePdfGenerationReturn {
   generating: boolean;
   error: string | null;
-  generatePdf: (student: StudentInfo, answers: Record<string, StudentAnswer>, reflectionText: string) => Promise<void>;
+  generatePdf: (
+    student: StudentInfo,
+    answers: Record<string, StudentAnswer>,
+    reflectionText: string,
+    sessionCode: string,
+    exportTimestamp: string,
+  ) => Promise<void>;
 }
 
 export function usePdfGeneration(lesson: Lesson): UsePdfGenerationReturn {
@@ -17,7 +23,9 @@ export function usePdfGeneration(lesson: Lesson): UsePdfGenerationReturn {
   const generatePdf = async (
     student: StudentInfo,
     answers: Record<string, StudentAnswer>,
-    reflectionText: string
+    reflectionText: string,
+    sessionCode: string,
+    exportTimestamp: string,
   ) => {
     setGenerating(true);
     setError(null);
@@ -33,6 +41,8 @@ export function usePdfGeneration(lesson: Lesson): UsePdfGenerationReturn {
         gradeResult,
         reflectionText,
         generatedAt: submittedAt,
+        sessionCode,
+        exportTimestamp,
       };
 
       // Submit to Supabase (best-effort — non-blocking)

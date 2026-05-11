@@ -14,4 +14,6 @@ export interface PdfPayload {
   reflectionText: string;
   gradeResult: GradeResult;
   generatedAt: string;
+  sessionCode: string;
+  exportTimestamp: string;
 }

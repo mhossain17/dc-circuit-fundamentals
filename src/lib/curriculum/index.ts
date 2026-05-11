@@ -5,7 +5,7 @@ export { ALL_UNITS, getUnit, getLesson, getAllLessons, getLessonById, MP_COLORS 
 export { STANDARDS, getStandardsByCode } from "./standards";
 
 /* Lazy-load registry — keeps initial bundle small */
-export const SIMULATION_REGISTRY: Record<SimulationKey, () => Promise<{ default: ComponentType<{ onInteraction?: () => void }> }>> = {
+export const SIMULATION_REGISTRY: Record<SimulationKey, () => Promise<{ default: ComponentType<{ onInteraction?: () => void; onComplete?: () => void }> }>> = {
   "breadboard":          () => import("@/components/simulations/breadboard/BreadboardSim"),
   "safety-gallery":      () => import("@/components/simulations/safety-gallery/SafetyGallery"),
   "notation-converter":  () => import("@/components/simulations/notation-converter/NotationConverter"),

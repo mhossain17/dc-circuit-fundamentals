@@ -41,9 +41,20 @@ interface LessonState {
   currentStage: LessonStage;
   simInteractionCount: number;
   isSimComplete: boolean;
+  guidedStepsCompleted: string[];
   answers: Record<string, StudentAnswer>;
   reflectionText: string;
   completedAt?: string;
+  sessionCode?: string;
+  exportTimestamp?: string;
+}
+
+function generateSessionCode(): string {
+  // Unambiguous chars — no 0/O/1/I confusion
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
 
 function getStagesForLesson(lesson: Lesson): LessonStage[] {
@@ -66,7 +77,6 @@ function saveProgress(lessonId: string, state: LessonState) {
 
 export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const stages = getStagesForLesson(lesson);
-  const threshold = lesson.simInteractionThreshold ?? 3;
 
   // Compute next lesson / next unit for post-lesson navigation
   const lessonIdx = unit.lessons.findIndex((l) => l.id === lesson.id);
@@ -80,6 +90,7 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
     currentStage: stages[0],
     simInteractionCount: 0,
     isSimComplete: false,
+    guidedStepsCompleted: [],
     answers: {},
     reflectionText: "",
   }));
@@ -91,6 +102,7 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
       setState((prev) => ({
         ...prev,
         ...saved,
+        guidedStepsCompleted: saved.guidedStepsCompleted ?? [],
         currentStage: stages.includes(saved.currentStage) ? saved.currentStage : stages[0],
       }));
     }
@@ -105,18 +117,31 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
   const progress = Math.round(((currentIdx + 1) / stages.length) * 100);
 
   const isRevealLocked =
-    state.currentStage === "reveal" && state.simInteractionCount < threshold && lesson.simulationKey !== null;
+    state.currentStage === "reveal" && !state.isSimComplete && lesson.simulationKey !== null;
 
   const canAdvance = useCallback(() => {
-    if (state.currentStage === "explore" && lesson.simulationKey && state.simInteractionCount < threshold) return false;
-    return true;
-  }, [state.currentStage, state.simInteractionCount, threshold, lesson.simulationKey]);
+    if (state.currentStage !== "explore") return true;
+    const simDone = !lesson.simulationKey || state.isSimComplete;
+    const stepsDone =
+      lesson.guidedDiscoverySteps.length === 0 ||
+      state.guidedStepsCompleted.length >= lesson.guidedDiscoverySteps.length;
+    return simDone && stepsDone;
+  }, [state.currentStage, state.isSimComplete, state.guidedStepsCompleted, lesson]);
 
   const advance = () => {
     if (!canAdvance()) return;
     const nextIdx = currentIdx + 1;
     if (nextIdx < stages.length) {
-      setState((prev) => ({ ...prev, currentStage: stages[nextIdx] }));
+      const nextStage = stages[nextIdx];
+      setState((prev) => ({
+        ...prev,
+        currentStage: nextStage,
+        // Lock session code + timestamp exactly once when entering export
+        ...(nextStage === "export" && !prev.sessionCode ? {
+          sessionCode: generateSessionCode(),
+          exportTimestamp: new Date().toISOString(),
+        } : {}),
+      }));
     } else {
       setState((prev) => ({ ...prev, completedAt: new Date().toISOString() }));
     }
@@ -133,9 +158,22 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
     setState((prev) => ({
       ...prev,
       simInteractionCount: prev.simInteractionCount + 1,
-      isSimComplete: prev.simInteractionCount + 1 >= threshold,
     }));
-  }, [threshold]);
+  }, []);
+
+  const handleSimComplete = useCallback(() => {
+    setState((prev) => ({ ...prev, isSimComplete: true }));
+  }, []);
+
+  const handleToggleStep = useCallback((id: string) => {
+    setState((prev) => {
+      const arr = prev.guidedStepsCompleted;
+      return {
+        ...prev,
+        guidedStepsCompleted: arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id],
+      };
+    });
+  }, []);
 
   const handleAnswer = useCallback((questionId: string, answer: StudentAnswer) => {
     setState((prev) => ({
@@ -203,28 +241,25 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h2 className="text-base font-bold text-redhawks-black dark:text-redhawks-white">Investigation</h2>
-                    <div className="flex items-center gap-2">
-                      <ProgressBar
-                        value={state.simInteractionCount}
-                        max={threshold}
-                        variant="lime"
-                        size="sm"
-                        className="max-w-24"
-                      />
-                      <span className="text-xs font-eng text-circuit-lime whitespace-nowrap">
-                        {Math.min(state.simInteractionCount, threshold)}/{threshold}
-                      </span>
-                    </div>
+                    {state.isSimComplete ? (
+                      <span className="text-xs font-eng text-circuit-lime flex items-center gap-1">✓ Complete</span>
+                    ) : (
+                      <span className="text-xs font-eng text-redhawks-gray-400 animate-pulse">Exploring…</span>
+                    )}
                   </div>
                   <Suspense fallback={<div className="h-64 card-surface flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-circuit-lime" /></div>}>
-                    <SimComponent onInteraction={handleSimInteraction} />
+                    <SimComponent onInteraction={handleSimInteraction} onComplete={handleSimComplete} />
                   </Suspense>
                 </div>
               )}
               {/* Right column (or full-width when no sim): discussion + guided discovery */}
               <div className="space-y-4 lg:max-h-[75vh] lg:overflow-y-auto lg:pr-1">
                 <SocraticPrompts lesson={lesson} />
-                <GuidedDiscovery lesson={lesson} />
+                <GuidedDiscovery
+                  lesson={lesson}
+                  completedSteps={state.guidedStepsCompleted}
+                  onToggleStep={handleToggleStep}
+                />
               </div>
             </div>
 
@@ -248,7 +283,7 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
               <Lock className="w-10 h-10 text-redhawks-gray-400 mx-auto mb-3" />
               <p className="font-semibold text-redhawks-black dark:text-redhawks-white mb-1">Concept Reveal Locked</p>
               <p className="text-sm text-redhawks-gray-500 dark:text-redhawks-gray-400">
-                Complete the simulation ({state.simInteractionCount}/{threshold} interactions) before the concept is revealed.
+                Complete the simulation before the concept is revealed.
                 Go back and explore more.
               </p>
               <Button variant="secondary" size="sm" className="mt-4" onClick={goBack}>
@@ -286,7 +321,13 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
                 You&apos;ve worked through all sections. Generate your PDF to submit to Google Classroom.
               </p>
             </div>
-            <PdfExportButton lesson={lesson} answers={state.answers} reflectionText={state.reflectionText} />
+            <PdfExportButton
+              lesson={lesson}
+              answers={state.answers}
+              reflectionText={state.reflectionText}
+              sessionCode={state.sessionCode ?? ""}
+              exportTimestamp={state.exportTimestamp ?? new Date().toISOString()}
+            />
             {/* Post-lesson navigation */}
             <div className="flex items-center justify-between gap-3 pt-1">
               <Link href="/dashboard">

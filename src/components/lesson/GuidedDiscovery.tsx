@@ -1,20 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronDown, Lightbulb } from "lucide-react";
+import { Search, Lightbulb } from "lucide-react";
 import type { Lesson } from "@/types/curriculum";
 
-export function GuidedDiscovery({ lesson }: { lesson: Lesson }) {
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [showHints, setShowHints] = useState<Set<string>>(new Set());
+interface Props {
+  lesson: Lesson;
+  completedSteps: string[];
+  onToggleStep: (id: string) => void;
+}
 
-  const toggleStep = (id: string) => {
-    setCompletedSteps((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
+export function GuidedDiscovery({ lesson, completedSteps, onToggleStep }: Props) {
+  const [showHints, setShowHints] = useState<Set<string>>(new Set());
 
   const toggleHint = (id: string) => {
     setShowHints((prev) => {
@@ -24,6 +21,8 @@ export function GuidedDiscovery({ lesson }: { lesson: Lesson }) {
     });
   };
 
+  const total = lesson.guidedDiscoverySteps.length;
+
   return (
     <div className="section-reveal space-y-5">
       <div className="flex items-center gap-2">
@@ -31,19 +30,20 @@ export function GuidedDiscovery({ lesson }: { lesson: Lesson }) {
         <h2 className="text-xl font-bold text-redhawks-black dark:text-redhawks-white">Guided Discovery</h2>
       </div>
       <p className="text-sm text-redhawks-gray-500 dark:text-redhawks-gray-400">
-        Work through each step in order. Use the hints if you're stuck, but try without them first.
+        Work through each step in order. Use the hints if you&apos;re stuck, but try without them first.
+        {total > 0 && <span className="block mt-1 font-eng text-xs text-amber-500 dark:text-amber-400">Complete all steps to continue.</span>}
       </p>
 
       <div className="space-y-4">
         {lesson.guidedDiscoverySteps.map((step, i) => {
-          const done = completedSteps.has(step.id);
+          const done = completedSteps.includes(step.id);
           const hintVisible = showHints.has(step.id);
 
           return (
             <div key={step.id} className={`card-surface p-5 transition-all ${done ? "border-l-4 border-l-circuit-lime opacity-75" : "border-l-4 border-l-redhawks-gray-200 dark:border-l-redhawks-gray-700"}`}>
               <div className="flex items-start gap-3">
                 <button
-                  onClick={() => toggleStep(step.id)}
+                  onClick={() => onToggleStep(step.id)}
                   className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${done ? "bg-circuit-lime border-circuit-lime" : "border-redhawks-gray-300 dark:border-redhawks-gray-600 hover:border-circuit-lime"}`}
                   aria-label={done ? "Mark incomplete" : "Mark complete"}
                 >
@@ -81,7 +81,7 @@ export function GuidedDiscovery({ lesson }: { lesson: Lesson }) {
 
       <div className="card-surface p-4 bg-redhawks-gray-50 dark:bg-redhawks-gray-900">
         <p className="text-xs text-redhawks-gray-500 dark:text-redhawks-gray-400">
-          {completedSteps.size} of {lesson.guidedDiscoverySteps.length} steps completed
+          {completedSteps.length} of {total} steps completed
         </p>
       </div>
     </div>

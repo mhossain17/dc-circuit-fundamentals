@@ -11,9 +11,11 @@ interface Props {
   lesson: Lesson;
   answers: Record<string, StudentAnswer>;
   reflectionText: string;
+  sessionCode: string;
+  exportTimestamp: string;
 }
 
-export function PdfExportButton({ lesson, answers, reflectionText }: Props) {
+export function PdfExportButton({ lesson, answers, reflectionText, sessionCode, exportTimestamp }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -33,6 +35,8 @@ export function PdfExportButton({ lesson, answers, reflectionText }: Props) {
           lesson={lesson}
           answers={answers}
           reflectionText={reflectionText}
+          sessionCode={sessionCode}
+          exportTimestamp={exportTimestamp}
           onClose={() => setOpen(false)}
         />
       )}

@@ -11,10 +11,12 @@ interface Props {
   lesson: Lesson;
   answers: Record<string, StudentAnswer>;
   reflectionText: string;
+  sessionCode: string;
+  exportTimestamp: string;
   onClose: () => void;
 }
 
-export function PdfModal({ lesson, answers, reflectionText, onClose }: Props) {
+export function PdfModal({ lesson, answers, reflectionText, sessionCode, exportTimestamp, onClose }: Props) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [section, setSection] = useState<1 | 2 | 3>(1);
@@ -23,7 +25,13 @@ export function PdfModal({ lesson, answers, reflectionText, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) return;
-    await generatePdf({ firstName: firstName.trim(), lastName: lastName.trim(), section }, answers, reflectionText);
+    await generatePdf(
+      { firstName: firstName.trim(), lastName: lastName.trim(), section },
+      answers,
+      reflectionText,
+      sessionCode,
+      exportTimestamp,
+    );
     onClose();
   };
 

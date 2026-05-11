@@ -163,8 +163,12 @@ interface Props {
 }
 
 export function LessonPdfDocument({ payload }: Props) {
-  const { studentInfo: student, lesson, answers, gradeResult, reflectionText, generatedAt } = payload;
+  const { studentInfo: student, lesson, answers, gradeResult, reflectionText, generatedAt, sessionCode, exportTimestamp } = payload;
   const dateStr = new Date(generatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const exportDateStr = new Date(exportTimestamp).toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
 
   // Separate auto-graded vs teacher-review questions
   const autoQuestions = lesson.questions.filter(q => q.type !== "short_response" && q.type !== "prediction");
@@ -259,7 +263,10 @@ export function LessonPdfDocument({ payload }: Props) {
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Mr. Hossain · DC Circuit Fundamentals · Keep Moving Forward</Text>
+          <Text style={styles.footerText}>
+            Mr. Hossain · DC Circuit Fundamentals · Keep Moving Forward{"  "}|{"  "}
+            Session: {sessionCode} · {exportDateStr}
+          </Text>
           <Text style={styles.footerBold}>Upload this PDF to Google Classroom.</Text>
         </View>
       </Page>
