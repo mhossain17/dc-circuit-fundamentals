@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft, Lock, Loader2 } from "lucide-react";
+import { ChevronRight, ChevronLeft, Lock, Loader2, FileDown } from "lucide-react";
 import { Button } from "@/components/design-system/Button";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { AimSection } from "./AimSection";
@@ -35,6 +35,17 @@ const STAGE_LABELS: Record<LessonStage, string> = {
   practice:   "Practice",
   reflection: "Reflection",
   export:     "Generate PDF",
+};
+
+const STAGE_SHORT: Record<LessonStage, string> = {
+  aim:        "Lesson Aim",
+  swbat:      "Objectives",
+  why:        "Why It Matters",
+  explore:    "Investigation",
+  reveal:     "Concept Reveal",
+  practice:   "Practice",
+  reflection: "Reflection",
+  export:     "Finished",
 };
 
 interface LessonState {
@@ -329,57 +340,72 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
               exportTimestamp={state.exportTimestamp ?? new Date().toISOString()}
             />
             {/* Post-lesson navigation */}
-            <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="flex items-center justify-between gap-4 pt-1">
               <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                <Button variant="secondary" size="md" className="flex items-center gap-1.5">
                   <ChevronLeft className="w-4 h-4" />
                   Dashboard
                 </Button>
               </Link>
-              {(nextLesson || nextUnit) && (
+              {(nextLesson || nextUnit) ? (
                 <Link href={nextLesson
                   ? `/units/${unit.id}/lessons/${nextLesson.id}`
                   : `/units/${nextUnit!.id}/lessons/${nextUnit!.lessons[0].id}`
                 }>
-                  <Button variant="primary" size="sm" className="flex items-center gap-1">
-                    {nextLesson
-                      ? `${nextLesson.number}: ${nextLesson.title}`
-                      : `Unit ${nextUnit!.number}: ${nextUnit!.title}`}
-                    <ChevronRight className="w-4 h-4" />
+                  <Button variant="primary" size="md" className="flex items-center gap-1.5 max-w-[240px]">
+                    <span className="truncate">
+                      {nextLesson
+                        ? `${nextLesson.number}: ${nextLesson.title}`
+                        : `Unit ${nextUnit!.number}: ${nextUnit!.title}`}
+                    </span>
+                    <ChevronRight className="w-4 h-4 shrink-0" />
                   </Button>
                 </Link>
+              ) : (
+                <span className="text-sm text-redhawks-gray-500 dark:text-redhawks-gray-400 italic">
+                  🎉 Course complete!
+                </span>
               )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Navigation buttons */}
-      <div className="mt-8 flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={goBack}
-          disabled={currentIdx === 0}
-          className="flex items-center gap-1"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back
-        </Button>
+      {/* Navigation buttons — hidden on export stage (uses its own inline nav) */}
+      {stage !== "export" && (
+        <div className="mt-8 flex items-center justify-between gap-4">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={goBack}
+            disabled={currentIdx === 0}
+            className="flex items-center gap-1.5"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            {currentIdx > 0 ? STAGE_SHORT[STAGES[currentIdx - 1]] : "Start"}
+          </Button>
 
-        {stage !== "export" && (
           <Button
             variant="primary"
             size="md"
             onClick={advance}
             disabled={!canAdvance()}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1.5"
           >
-            {stage === "reflection" ? "Finish & Export" : "Continue"}
-            <ChevronRight className="w-4 h-4" />
+            {stage === "reflection" ? (
+              <>
+                <FileDown className="w-4 h-4" />
+                Generate PDF
+              </>
+            ) : (
+              <>
+                {STAGE_SHORT[STAGES[currentIdx + 1]]}
+                <ChevronRight className="w-4 h-4" />
+              </>
+            )}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
