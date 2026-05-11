@@ -142,3 +142,18 @@ body {
   border: 1px solid var(--card-border);
   border-radius: 0.75rem;
 }
+
+/* Print styles — used by teacher lesson plan pages */
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  nav, header { display: none !important; }
+  body { background: white !important; color: black !important; font-size: 11pt; }
+  * { overflow: visible !important; box-shadow: none !important; }
+  a { color: inherit; text-decoration: none; }
+  .card-surface, [class*="rounded-xl"] { border: 1px solid #ccc !important; background: white !important; }
+  [class*="bg-redhawks-red"] { background: #CC0000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  [class*="dark\\:"] { /* reset dark variants in print */ }
+}
+
+.print-only { display: none; }

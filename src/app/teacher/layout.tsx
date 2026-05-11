@@ -8,6 +8,7 @@ import { Lock, GraduationCap } from "lucide-react";
 const NAV_ITEMS = [
   { href: "/teacher", label: "Pacing Guide" },
   { href: "/teacher/units", label: "Unit Map" },
+  { href: "/teacher/lessons", label: "Lesson Plans" },
   { href: "/teacher/standards", label: "Standards" },
   { href: "/teacher/labs", label: "Lab Materials" },
   { href: "/teacher/rubrics", label: "Rubrics" },
