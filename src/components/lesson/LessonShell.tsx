@@ -26,6 +26,19 @@ const STAGES = [
 
 type LessonStage = typeof STAGES[number];
 
+const SIM_COMPLETION_HINTS: Record<string, string> = {
+  "breadboard":           "Build a working circuit on the breadboard",
+  "safety-gallery":       "Review and acknowledge all 6 safety hazard scenarios",
+  "notation-converter":   "Convert all values using the notation converter",
+  "component-identifier": "Correctly identify all electronic components",
+  "multimeter":           "Take measurements using the correct multimeter settings",
+  "resistor-color-code":  "Decode the color bands on all resistors",
+  "ohms-law":             "Use both sliders to explore voltage, current, and resistance",
+  "series-circuit":       "Build and complete the series circuit",
+  "parallel-circuit":     "Build and complete the parallel circuit",
+  "soldering":            "Complete all steps of the soldering procedure",
+};
+
 const STAGE_LABELS: Record<LessonStage, string> = {
   aim:        "Lesson Aim",
   swbat:      "Objectives",
@@ -298,12 +311,14 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
                   </p>
                   <div className="space-y-2">
                     {lesson.simulationKey && (
-                      <div className={`flex items-center gap-2.5 text-sm ${simDone ? "text-circuit-lime" : "text-redhawks-gray-300 dark:text-redhawks-gray-300"}`}>
+                      <div className={`flex items-start gap-2.5 text-sm ${simDone ? "text-circuit-lime" : "text-redhawks-gray-300 dark:text-redhawks-gray-300"}`}>
                         {simDone
-                          ? <CheckCircle2 className="w-4 h-4 shrink-0" />
-                          : <Circle className="w-4 h-4 shrink-0 text-amber-500" />}
-                        <span className={simDone ? "" : "font-semibold"}>
-                          Complete the simulation
+                          ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                          : <Circle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />}
+                        <span>
+                          <span className={simDone ? "" : "font-semibold"}>
+                            {SIM_COMPLETION_HINTS[lesson.simulationKey] ?? "Complete the simulation"}
+                          </span>
                         </span>
                       </div>
                     )}
