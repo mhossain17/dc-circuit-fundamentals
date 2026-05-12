@@ -25,13 +25,23 @@ export function GuidedDiscovery({ lesson, completedSteps, onToggleStep }: Props)
 
   return (
     <div className="section-reveal space-y-5">
-      <div className="flex items-center gap-2">
-        <Search className="w-5 h-5 text-redhawks-red" />
-        <h2 className="text-xl font-bold text-redhawks-black dark:text-redhawks-white">Guided Discovery</h2>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Search className="w-5 h-5 text-redhawks-red" />
+          <h2 className="text-xl font-bold text-redhawks-black dark:text-redhawks-white">Guided Discovery</h2>
+        </div>
+        {total > 0 && (
+          <span className={`text-xs font-eng font-bold px-2.5 py-1 rounded-full ${
+            completedSteps.length >= total
+              ? "bg-circuit-lime/15 text-circuit-lime"
+              : "bg-amber-500/15 text-amber-500"
+          }`}>
+            {completedSteps.length}/{total} steps done
+          </span>
+        )}
       </div>
       <p className="text-sm text-redhawks-gray-500 dark:text-redhawks-gray-400">
-        Work through each step in order. Use the hints if you&apos;re stuck, but try without them first.
-        {total > 0 && <span className="block mt-1 font-eng text-xs text-amber-500 dark:text-amber-400">Complete all steps to continue.</span>}
+        Check off each step as you complete it. <strong className="text-redhawks-black dark:text-redhawks-white">All steps must be done before you can move on.</strong>
       </p>
 
       <div className="space-y-4">
@@ -79,11 +89,6 @@ export function GuidedDiscovery({ lesson, completedSteps, onToggleStep }: Props)
         })}
       </div>
 
-      <div className="card-surface p-4 bg-redhawks-gray-50 dark:bg-redhawks-gray-900">
-        <p className="text-xs text-redhawks-gray-500 dark:text-redhawks-gray-400">
-          {completedSteps.length} of {total} steps completed
-        </p>
-      </div>
     </div>
   );
 }

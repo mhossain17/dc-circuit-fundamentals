@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft, Lock, Loader2, FileDown } from "lucide-react";
+import { ChevronRight, ChevronLeft, Lock, Loader2, FileDown, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/design-system/Button";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { AimSection } from "./AimSection";
@@ -285,6 +285,47 @@ export function LessonShell({ unit, lesson }: { unit: Unit; lesson: Lesson }) {
               </button>
             </div>
             <CalculatorModal isOpen={showCalculator} onClose={() => setShowCalculator(false)} />
+
+            {/* Requirements checklist — shows what students must do before continuing */}
+            {(() => {
+              const simDone = !lesson.simulationKey || state.isSimComplete;
+              const stepsDone = lesson.guidedDiscoverySteps.length === 0 || state.guidedStepsCompleted.length >= lesson.guidedDiscoverySteps.length;
+              const allDone = simDone && stepsDone;
+              return (
+                <div className={`rounded-xl border px-5 py-4 ${allDone ? "border-circuit-lime/40 bg-circuit-lime/5" : "border-amber-500/30 bg-amber-500/5"}`}>
+                  <p className={`text-xs font-eng font-bold uppercase tracking-wider mb-3 ${allDone ? "text-circuit-lime" : "text-amber-500"}`}>
+                    {allDone ? "✓ Ready to continue" : "Complete these to continue →"}
+                  </p>
+                  <div className="space-y-2">
+                    {lesson.simulationKey && (
+                      <div className={`flex items-center gap-2.5 text-sm ${simDone ? "text-circuit-lime" : "text-redhawks-gray-300 dark:text-redhawks-gray-300"}`}>
+                        {simDone
+                          ? <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          : <Circle className="w-4 h-4 shrink-0 text-amber-500" />}
+                        <span className={simDone ? "" : "font-semibold"}>
+                          Complete the simulation
+                        </span>
+                      </div>
+                    )}
+                    {lesson.guidedDiscoverySteps.length > 0 && (
+                      <div className={`flex items-center gap-2.5 text-sm ${stepsDone ? "text-circuit-lime" : "text-redhawks-gray-300 dark:text-redhawks-gray-300"}`}>
+                        {stepsDone
+                          ? <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          : <Circle className="w-4 h-4 shrink-0 text-amber-500" />}
+                        <span className={stepsDone ? "" : "font-semibold"}>
+                          Check off all guided discovery steps
+                          {!stepsDone && (
+                            <span className="ml-1.5 font-eng text-amber-500">
+                              ({state.guidedStepsCompleted.length}/{lesson.guidedDiscoverySteps.length})
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
